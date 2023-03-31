@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
 const AdminSchema = new mongoose.Schema({
     firstName: {
         type: String,
@@ -20,13 +22,28 @@ const AdminSchema = new mongoose.Schema({
         type: String,
         require: true
     },
+    password: {
+        type: String,
+        require: true
+    },
     createAt: {
         type: Date,
         require: true,
         default: Date.now
     }
-})
+});
 
-const Admin = mongoose.model('Admin', AdminSchema)
+AdminSchema.pre('save', async function (next){
+    const admin = this;
+    if(!admin.isModified('password')){
+        return next();
+    }
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(admin.password, salt);
+    admin.password = hash;
+    next();
+});
 
-module.exports = Admin
+const Admin = mongoose.model('Admin', AdminSchema);
+
+module.exports = Admin;
