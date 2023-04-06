@@ -10,7 +10,7 @@ const GetAllAdmin = async (req, res, next) => {
     {
         res.status(500).json({msg: error})
     }
-}
+}   
 
 const GetAdmin = async (req, res, next) => {
     let id = req.params.id;
