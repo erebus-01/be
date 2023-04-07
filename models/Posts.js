@@ -20,13 +20,8 @@ const PostSchema = new mongoose.Schema({
     content: {
         type: String,
         require: true
-    },
-    createAt: {
-        type: Date,
-        require: true,
-        default: Date.now
-    },
-})
+    }
+}, {timestamps: true})
 
 const Post = mongoose.model('Post', PostSchema);
 
