@@ -25,6 +25,10 @@ const AdminSchema = new mongoose.Schema({
     password: {
         type: String,
         require: true
+    },
+    verify: {
+        type: Boolean,
+        default: false
     }
 }, {timestamps: true});
 
