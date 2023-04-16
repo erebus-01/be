@@ -25,13 +25,8 @@ const AdminSchema = new mongoose.Schema({
     password: {
         type: String,
         require: true
-    },
-    createAt: {
-        type: Date,
-        require: true,
-        default: Date.now
     }
-});
+}, {timestamps: true});
 
 AdminSchema.pre('save', async function (next){
     const admin = this;

@@ -21,13 +21,8 @@ const CustomerSchema = new mongoose.Schema({
     password: {
         type: string,
         require: true
-    },
-    createAt: {
-        type: Date,
-        require: true,
-        default: Date.now
     }
-});
+}, {timestamps: true});
 
 CustomerSchema.pre('save', async function (next){
     const user = this;
