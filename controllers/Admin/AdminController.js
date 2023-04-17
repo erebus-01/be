@@ -188,9 +188,9 @@ const UpdateAdmin = async (req,res) => {
     Admin.findByIdAndUpdate(id, { firstName, lastName, email, address, telephone }, { new: true })
         .then(AdminInfor => {
         res.status(201).json({ message: "Update successfully", json: AdminInfor });
-    }).catch(err => {
-        res.status(500).json({ message: err.message });
-    });
+        }).catch(err => {
+            res.status(500).json({ message: err.message });
+        });
 }
 
 const DeleteAdmin = async (req, res, next) => {

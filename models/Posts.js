@@ -13,8 +13,7 @@ const PostSchema = new mongoose.Schema({
         require: true
     },
     image: {
-        data: Buffer,
-        contentType: String,
+        type: String,
         require: true
     },
     content: {
@@ -25,4 +24,4 @@ const PostSchema = new mongoose.Schema({
 
 const Post = mongoose.model('Post', PostSchema);
 
-module.export = Post
+module.exports = Post
