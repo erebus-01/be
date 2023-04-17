@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const ProductColor = require('./productColorSchema');
 
 const productSchema = new mongoose.Schema({
     name: {
@@ -10,20 +9,18 @@ const productSchema = new mongoose.Schema({
         type: String,
         require: true
     },
-    image: [
-        {
-        data: Buffer,
-        contentType: String
-        }
-    ],
+    image: {
+        type: String,
+        require: true
+    },
     description: {
             type: String,
             require: true
     },
-    outstanding: {
+    benefit: [{
         type: String,
         require: true
-    },
+    }],
     price: {
         type: Number,
         required: true

@@ -12,7 +12,7 @@ const Logout = async (res, req, next) => {
     res.redirect('/');
 }
 
-module.export = {
+module.exports = {
     Login,
     Logout
 }
