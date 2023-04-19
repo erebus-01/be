@@ -17,36 +17,35 @@ const InsertProduct = async (req, res) => {
       image: imageFixed, 
       description, 
       benefit: benefitArray, 
-      price: priceFixed
+      price: priceFixed,
     });
-    await newProduct
-      .save()
+
+    await newProduct.save()
       .then(() => {
         res.status(201).json({ 
           message: "Post product successfully", 
-          status: 'success', 
-          json: { nameFixed, subtitlesFixed, imageFixed, description, benefitArray, priceFixed }
+          status: 'success'
         });
       })
-      .catch(err => res.status(500).json({ message: error }));
+      .catch(err => res.status(500).json({ message: `Have error ${err}` }));
 
     }catch(err)
     {
-      res.status(500).json({ message: "Server error" })
+      res.status(500).json({ message: `Server error ${err}` })
     }
 }
 const GetProducts = async (req, res) => {
   try {
     Product.find({})
-    .then(products => res.status(200).json(posts))
-    .catch(err => res.status(500).json({ message: err}))
+    .then(products => res.status(200).json(products))
+    .catch(err => res.status(500).json({ message: err }))
   }catch(error) {res.status(500).json({ message: error })}
 }
 const GetProduct = async (req, res) => {
   try {
     const id = req.params.id;
-    Product.findById({id})
-    .then(products => res.status(200).json(posts))
+    Product.findById({ _id: id})
+    .then(product => res.status(200).json(product))
     .catch(err => res.status(500).json({ message: err}))
   }catch(error) {res.status(500).json({ message: error })}
 }
@@ -67,7 +66,8 @@ const UpdateProduct = async (req, res) => {
       image: imageFixed, 
       description, 
       benefit: benefitArray,
-      price: priceFixed
+      price: priceFixed,
+      colors: ['id']
     }, { new: true })
     .then(() => res.status(200).json({ message: 'Product updated successfully' }))
     .catch(error => res.status(500).json({ message: error }));
@@ -88,7 +88,15 @@ const GetColors = async (req, res) => {
     const productId = req.params.product
 
     await Product.findOne({ _id: productId })
-      .then(async () => res.status(200).json({ message: 'Product found successfully'}))
+      .then(async () => {
+        await ProductColor.find({ product: productId })
+          .then((colors) => {
+            res.status(200).json({ message: 'Product colors fetched successfully', json: colors })
+          })
+          .catch((error) => {
+            res.status(500).json({ message: error })
+          })
+      })
       .catch((error) => {
           res.status(500).json({ message: error })
       });
@@ -99,12 +107,21 @@ const GetColors = async (req, res) => {
 }
 const GetColor = async (req, res) => {
   try {
+    const id = req.params.id;
+    const productId = req.params.product
+
+    await ProductColor.find({ _id: id, product: productId })
+    .then((colors) => {
+      res.status(200).json({ message: 'Product colors fetched successfully', json: colors })
+    })
+    .catch((error) => {
+      res.status(500).json({ message: error })
+    })
 
   }catch(error) {
     res.status(500).json({ json: error });
   }
 }
-
 const InsertColor = async (req, res) => {
   try {
     const id = req.params.product;
@@ -114,40 +131,46 @@ const InsertColor = async (req, res) => {
     const colorFixed = color.replace(/[ \t\n]+/g, '');
     const imagesFixed = images.split(/\r?\n/).filter(str => str.trim() !== '');
 
-    await ProductColor.findOne({ name: nameFixed, color: colorFixed })
-      .then(async (exitsedColor) => {
-        if(exitsedColor)
-        {
-          res.status(400).json({ message: 'Color already exists' });
-        }
-        else
-        {
-          const product = await Product.findById({ _id: id});
-          const newColor = new ProductColor({
-            name: nameFixed,
-            color: colorFixed,
-            images: imagesFixed,
-            product: product._id
+
+    const existingColor = await ProductColor.findOne({ name: nameFixed, color: colorFixed });
+    if (existingColor) {
+      res.status(400).json({ message: 'Color already exists' });
+      return;
+    }
+
+    const product = await Product.findById({ _id: id });
+        const newColor = new ProductColor({
+          name: nameFixed,
+          color: colorFixed,
+          images: imagesFixed,
+          product: product._id
+        })
+    
+        await newColor.save()
+          .then((saveColor) => {
+            Product.findByIdAndUpdate(id, { $push: {colors: saveColor._id} }, { new: true, upsert: true })
+              .then((product) => res.status(200).json({ message: 'Product saved successfully', json: saveColor, product }))
+              .catch(error => res.status(500).json({ message: error }));
           })
-      
-          await newColor.save()
-            .then((saveColor) => {
-              Product.findByIdAndUpdate(id, { colors: saveColor._id }, { new: true})
-                .then((product) => res.status(200).json({ message: 'Product saved successfully', json: saveColor, product }))
-                .catch(error => res.status(500).json({ message: error }));
-            })
-            .catch(error => res.status(500).json({ message: error }));
-        }
-      })
-      .catch(error =>{
-        res.status(500).json({ json: error });
-      })
+          .catch(error => res.status(500).json({ message: error }));
+
   }catch(error) {
     res.status(500).json({ json: error });
   }
 }
 const UpdateColor = async (req, res) => {
   try {
+    const id = req.params.id;
+    const product = req.params.product;
+    const { name, color, images } = req.body;
+
+    const nameFixed = name.replace(/\n/g, '');
+    const colorFixed = color.replace(/[ \t\n]+/g, '');
+    const imagesFixed = images.split(/\r?\n/).filter(str => str.trim() !== '');
+
+    await ProductColor.findByIdAndUpdate({_id: id, product: product}, { name: nameFixed, color: colorFixed, images: imagesFixed }, { new: true })
+    .then(() => res.status(200).json({ message: "Update color product successfully." }))
+    .catch(err => res.status(500).json({ message: err }));
 
   }catch(error) {
     res.status(500).json({ json: error });
@@ -155,7 +178,12 @@ const UpdateColor = async (req, res) => {
 }
 const DeleteColor = async (req, res) => {
   try {
+    const id = req.params.id;
+    const product = req.params.product
 
+    await ProductColor.findByIdAndDelete({ _id: id, product: product })
+    .then(() => res.status(200).json({ message: 'Color deleted successfully' }))
+    .catch(err => res.status(500).json({ message: err }));
   }catch(error) {
     res.status(500).json({ json: error });
   }

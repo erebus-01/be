@@ -14,8 +14,8 @@ const productSchema = new mongoose.Schema({
         require: true
     },
     description: {
-            type: String,
-            require: true
+        type: String,
+        require: true
     },
     benefit: [{
         type: String,
@@ -27,7 +27,8 @@ const productSchema = new mongoose.Schema({
     },
     colors: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'ProductColor'
+        ref: 'ProductColor',
+        default: []
     }]
 }, {timestamps: true});
 
