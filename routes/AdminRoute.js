@@ -7,8 +7,17 @@ const {
     InsertAdmin,
     UpdateAdmin,
     DeleteAdmin,
-    VerifyAdmin
+    VerifyAdmin,
 } = require('../controllers/Admin/AdminController');
+
+const {
+    AdminLogin,
+    currentToken
+} = require("../controllers/Admin/SignAdmin")
+
+const {
+    validateToken
+} = require("../middleware/validateTokenAdmin")
 
 const {
     GetPosts,
@@ -29,7 +38,8 @@ const {
     GetColor,
     InsertColor,
     UpdateColor,
-    DeleteColor
+    DeleteColor,
+
 } = require('../controllers/Admin/ProductController');
 // #endregion
 
@@ -42,6 +52,11 @@ route.route('/admin').post(InsertAdmin);
 route.route('/admin/:id').put(UpdateAdmin);
 route.route('/admin/:id').delete(DeleteAdmin);
 route.route('/admin/verify/:adminId/:uniqueString').get(VerifyAdmin);
+
+
+route.route('/admin/controller/login').post(AdminLogin);
+route.route('/admin/controller/currentToken').get(validateToken, currentToken);
+
 // #endregion
 
 

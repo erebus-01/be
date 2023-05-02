@@ -10,7 +10,7 @@ const CustomerSchema = new mongoose.Schema({
         type: String,
         require: true
     },
-    usename: {
+    username: {
         type: String,
         require: true
     },
@@ -19,8 +19,12 @@ const CustomerSchema = new mongoose.Schema({
         require: true,
     },
     password: {
-        type: string,
+        type: String,
         require: true
+    },
+    verify: {
+        type: Boolean,
+        default: false
     }
 }, {timestamps: true});
 

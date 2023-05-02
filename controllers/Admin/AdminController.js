@@ -1,7 +1,9 @@
+require('dotenv').config();
 const Admin = require('../../models/Admin');
 const AdminVerification = require('../../models/AdminVerification');
 const validator = require('email-validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const {v4: uuidv4} = require('uuid');
 
@@ -51,8 +53,7 @@ const sendVerificationEmail = ({_id, email}, res) => {
             })
             .catch((error) => {
                 res.status(500).json({msg: 'Could not save verification email'})
-            })
-            ;
+            });
     })
     .catch(() => {
         res.status(500).json({msg: 'An error occurred while hashing your email'})
@@ -207,11 +208,12 @@ const DeleteAdmin = async (req, res, next) => {
     }
 }
 
+
 module.exports =  {
     GetAllAdmin,
     GetAdmin,
     InsertAdmin,
     UpdateAdmin,
     VerifyAdmin,
-    DeleteAdmin
+    DeleteAdmin,
 }
