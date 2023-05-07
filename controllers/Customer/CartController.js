@@ -5,40 +5,45 @@ const Product = require('../../models/Products');
 const Cart = require('../../models/Cart')
 
 const AddToCart = async (req, res) => {
-    const { productId, quantity } = req.body;
+    const { quantity } = req.body;
+    const productId = req.params.id;
+    const convertQuantity = parseInt(quantity);
 
-    if(req.user) {
-        let cart = await Cart.findOne({ user: req.uesr._id });
+    if(req.session.user) {
+        let cart = await Cart.findOne({ user: req.session.user.id });
         if(!cart){
-            cart = await Cart.create({ user: req.user._id, products: [] })
+            cart = await Cart.create({ user: req.session.user.id, products: [] })
         }
 
         const existingProduct = cart.products.find(product => product.product.equals(productId));
         if(existingProduct)
         {
-            existingProduct.quantity += quantity;
+            existingProduct.quantity += convertQuantity;
         }
         else
         {
-            cart.products.push({ product: productId, quantity });
+            cart.products.push({ product: productId, quantity: convertQuantity });
         }
 
         await cart.save();
-        res.json({ cart });
+        res.status(200).json({ cart });
     }
     else
     {
         let cart = req.session.cart || [];
 
+        console.log('cart:', cart);
+        console.log('productId:', productId);
+
         const existingProduct = cart.find(product => product.productId === productId);
 
         if (existingProduct) {
-            existingProduct.quantity += quantity;
+            existingProduct.quantity += convertQuantity;
         } else {
-            cart.push({ productId, quantity });
+            cart.push({ productId, quantity: convertQuantity });
         }
         req.session.cart = cart;
-        res.json({ cart });
+        res.status(201).json({ cart });
     }
 }
 
@@ -71,4 +76,9 @@ const RemoveItem = async (req, res) => {
         req.session.cart = cart;
         res.json({ success: true, message: 'Product removed from cart' })
     }
+}
+
+module.exports = {
+    AddToCart,
+    RemoveItem
 }

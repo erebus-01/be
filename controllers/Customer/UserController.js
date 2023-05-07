@@ -1,10 +1,14 @@
 const User = require('../../models/Users');
 const UserVerification = require("../../models/UserVerification");
+const Cart = require("../../models/Cart");
 
 const validator = require('email-validator');
 const bcrypt = require('bcryptjs');
 const nodemailer = require("nodemailer");
 const {v4: uuidv4} = require('uuid');
+const jwt = require('jsonwebtoken');
+const redis = require('redis');
+const client = redis.createClient();
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -123,15 +127,6 @@ const VerifyUser = async (req, res, next) => {
     })
 }
 
-const SignIn = async (req, res) => {
-    try{
-        
-    }catch(error)
-    {
-        res.status(500).json({ json: error });
-    }
-}
-
 const SignUp = async (req, res, next) => {
     try{
         const { firstName, lastName, username, email, password, cfpassword } = req.body;
@@ -161,8 +156,92 @@ const SignUp = async (req, res, next) => {
     }
 }
 
+const SignIn = async (req, res) => {
+    try{
+        const {email, password} = req.body;
+
+        const user = await User.findOne({ email, verify: true });
+
+        if(user && await bcrypt.compare(password, user.password)) 
+        {
+            const accessToken = jwt.sign(
+                {
+                    user: {
+                        username: user.username,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName,
+                        id: user.id,
+                    }
+                },
+                process.env.ACCESS_TOKEN_USER,
+                { expiresIn: "5m" }
+            )
+            res.status(201).json({ accessToken })
+        }
+        else
+        {
+            res.status(401).json({ message: "Incorrect account information or email unconfirmed account" })
+        } 
+
+    }catch(error)
+    {
+        res.status(500).json({ message: "have error " + error });
+    }
+}
+
+const currentToken = async (req, res) => {
+    
+    const cart = req.session.cart || [];
+
+
+    if (cart.length > 0) {
+        let userCart = await Cart.findOne({ user: user._id });
+    
+        if (!userCart) {
+          userCart = await Cart.create({ user: user._id, products: [] });
+        }
+
+        cart.forEach(async (item) => {
+            const existingProduct = userCart.products.find(
+              (product) => product.product.toString() === item.productId
+            );
+      
+            if (existingProduct) {
+              existingProduct.quantity += item.quantity;
+            } else {
+              userCart.products.push({
+                product: item.productId,
+                quantity: item.quantity,
+              });
+            }
+          });
+        await userCart.save();
+        req.session.cart = [];
+        
+        res.status(201).json({ message: "Add to cart from session" });
+    }
+    res.status(201).json({ json: req.session.user });
+}
+
+const Logout = async (req, res) => {
+    try {
+        const authToken = req.headers.authorization;
+        const token = authToken.split(" ")[1];
+
+        client.set(token, 'blacklisted', 'EX', 60 * 5, (err, reply) => {
+            if (err) throw err;
+            client.quit();
+            res.status(200).json({ message: "Logout successful" });
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error logging out: " + error });
+    }
+};
 module.exports = {
     SignUp,
     SignIn,
-    VerifyUser
+    VerifyUser,
+    currentToken,
+    Logout
 }

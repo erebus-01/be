@@ -10,7 +10,7 @@ const AdminLogin = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const admin = await Admin.findOne({ email })
+        const admin = await Admin.findOne({ email, verify: true })
 
         if(admin && (await bcrypt.compare(password, admin.password)))
         {
@@ -27,7 +27,7 @@ const AdminLogin = async (req, res) => {
         }
         else
         {
-            res.status(401).json({ message: "Email or password admin account is not correct" })
+            res.status(401).json({ message: "Incorrect account information or email unconfirmed account" })
         }
 
     } catch (error) {
