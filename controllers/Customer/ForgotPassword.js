@@ -77,6 +77,8 @@ const CheckVerifyCode = async (req, res) => {
 
     try {
         await VerifyPassUser.find({ userId, verifyCode })
+        .sort({ createdAt: -1 })
+        .limit(1)
         .then((result) => {
             if(result.length > 0) {
                 const expiresAt = result[0];
