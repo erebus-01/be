@@ -32,9 +32,6 @@ const AddToCart = async (req, res) => {
     {
         let cart = req.session.cart || [];
 
-        console.log('cart:', cart);
-        console.log('productId:', productId);
-
         const existingProduct = cart.find(product => product.productId === productId);
 
         if (existingProduct) {
@@ -47,25 +44,43 @@ const AddToCart = async (req, res) => {
     }
 }
 
-const RemoveItem = async (req, res) => {
-    const productId = req.body.productId;
-    const username = req.user ? req.username : null;
+const GetAllItem = async (req, res) => {
+    const userId = req.session.user ? req.session.user.id : null;
 
-    if(username)
-    {
-        const cart = await Cart.findOne({ username }).populate('product');
-        const productIndex = cart.product.findIndex((product) => product._id.toString() === productId);
-        if (productIndex === -1) {
-          return res.status(400).json({ error: 'Product not found in cart' });
+    if(userId) {
+        const cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            return res.status(404).json({ message: 'Cart not found' });
         }
-        const product = cart.product[productIndex];
-        cart.product.splice(productIndex, 1);
+        res.status(401).json({ json: cart.products });
+    }
+    else
+    {
+        res.status(404).json({ message: 'Cart not found' });
+    }
+}
+
+const RemoveItem = async (req, res) => {
+    const productId = req.params.id;
+    const userId = req.session.user ? req.session.user.id : null;
+
+    if(userId)
+    {
+        const cart = await Cart.findOne({ user: userId })
+        const productIndex = cart.products.findIndex((product) => product.product.toString() === productId);
+ 
+        if (productIndex === -1) {
+            return res.status(400).json({ error: 'Product not found in cart' });
+        }
+        const product = cart.products[productIndex];
+        cart.products.splice(productIndex, 1);
         await cart.save();
-        res.json({ success: true, message: 'Product removed from cart' });
+        res.json({ success: true, json: cart, message: 'Product removed from cart' });
     }
     else
     {
         const cart = req.session.cart || [];
+        res.json({ success: true, json: cart, message: 'Product removed from cart' })
         const productIndex = cart.findIndex((product) => product.productId === productId)
         if(productIndex === -1)
         {
@@ -80,5 +95,6 @@ const RemoveItem = async (req, res) => {
 
 module.exports = {
     AddToCart,
-    RemoveItem
+    RemoveItem,
+    GetAllItem
 }

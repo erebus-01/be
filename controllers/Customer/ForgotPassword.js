@@ -1,9 +1,8 @@
 const User = require("../../models/Users");
-
+const VerifyPassUser = require("../../models/VerifyPassUser");
 const validator = require('email-validator');
-const bcrypt = require('bcryptjs');
 const nodemailer = require("nodemailer");
-const {v4: uuidv4} = require('uuid');
+const bcrypt = require('bcryptjs');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -13,48 +12,122 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+const sendVerifyCodePass = async (req, res) => {
+    const email = req.body.email;
+    const verificationCode = generateVerificationCode();
 
-const sendVerificationEmail = ({_id, email}, res) => {
-    const currentUrl = "http://localhost:5000";
-    const uniqueString = uuidv4() + _id;
-
-    const mailOptions = {
-        from: process.env.AUTH_EMAIL,
-        to: email,
-        subject: 'Verify your email address',
-        html: `
-            <p>Verify your email to complete the account creation process</p>
-            <p>Please click the link below to verify your email address: <a href="${currentUrl}/verify/${_id}/${uniqueString}">here</a></p>
-        `
-    };
-
-    const saltEmail = 10;
-    bcrypt.hash(uniqueString, saltEmail)
-    .then((hashUniqueString) => {
-        const newUniqueVerify = new UserVerification({
-            userId: _id,
-            uniqueString: hashUniqueString,
-            createAt: Date.now(),
-            expireAt: Date.now() + 180000
-        })
-
-        newUniqueVerify
-        .save()
-        .then(() => {
-            transporter
-            .sendMail(mailOptions)
+    const user = await User.findOne({ email: email });
+    try {
+        if (user) {
+            const mailOptions = {
+                from: process.env.AUTH_EMAIL,
+                to: email,
+                subject: 'One-time verification code',
+                html: `
+                    <p>This is the verification code used to authenticate your account before you can change your password</p>
+                    <p>Your verification code is: ${verificationCode} </p>
+                `
+            };
+        
+            const newUniqueVerify = new VerifyPassUser({
+                userId: user.id,
+                verifyCode: verificationCode,
+                createAt: Date.now(),
+                expireAt: Date.now() + 90000
+            })
+        
+            newUniqueVerify
+            .save()
             .then(() => {
-                res.status(201).json({ message: 'Verification email sent' })
+                transporter
+                .sendMail(mailOptions)
+                .then(() => {
+                    res.status(201).json({ message: 'Verification email sent' })
+                })
+                .catch((error) => {
+                    res.status(500).json({message: 'Send verification email failed'})
+                })
             })
             .catch((error) => {
-                res.status(500).json({message: 'Send verification email failed'})
-            })
-        })
-        .catch((error) => {
-            res.status(500).json({message: 'Could not save verification email'})
-        });
-    })
-    .catch(() => {
-        res.status(500).json({message: 'An error occurred while hashing your email'})
-    })
+                res.status(500).json({ message: 'Could not save verification email' })
+            });
+        }
+        else
+        {            
+            res.status(500).json({ message: 'Email has not been registered in our system' })
+        }
+    }
+    catch(error) {res.status(500).json({ error: error.message }) };
 }
+
+function generateVerificationCode() {
+    const length = 6;
+    const charset = '0123456789';
+    let verificationCode = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      verificationCode += charset[randomIndex];
+    }
+    return verificationCode;
+}
+
+const CheckVerifyCode = async (req, res) => {
+    const verifyCode = req.body.verify;
+    const userId = req.params.id;
+
+    try {
+        await VerifyPassUser.find({ userId, verifyCode })
+        .then((result) => {
+            if(result.length > 0) {
+                const expiresAt = result[0];
+    
+                if(expiresAt < Date.now())
+                {
+                    VerifyPassUser
+                    .deleteOne({ userId, verifyCode })
+                    .then(() => {
+                        res.status(400).json({ message: 'Your verification code has expired' })
+                    })
+                    .catch(() => res.status(400).json({ message: 'An error occurred' }))
+                }
+                else {
+                    VerifyPassUser
+                    .deleteOne({ userId, verifyCode })
+                    .then(() => {
+                        res.status(400).json({ message: 'Your verification code is valid' })
+                    })
+                    .catch(() => res.status(400).json({ message: 'An error occurred' }))
+                }
+            }
+            else {
+                res.status(400).json({ message: "Incorrect code" })
+            }
+        })
+    } catch(error) {res.status(500).json({ error: error.message }) };
+}
+
+const ChangePassUser = async (req, res) => {
+    const userId = req.params.id;
+    const { password, cfpassword } = req.body;
+
+    try {
+        if(password !== cfpassword) {
+            return res.status(400).json({ message: 'Two passwords do not match' })
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+    
+        await User.findByIdAndUpdate({ _id: userId }, { password: hashedPassword }, {new: true })
+        .then(() => {
+            res.status(200).json({ message: 'Your password change successfully' });
+        })
+        .catch(error => res.status(500).json({ error: error.message }));
+    } catch(error) {res.status(500).json({ error: error.message }) };
+}
+
+module.exports = {
+    sendVerifyCodePass,
+    CheckVerifyCode,
+    ChangePassUser
+};
