@@ -10,7 +10,6 @@ const {
 } = require("../controllers/Customer/UserController")
 
 const { validateToken } = require("../middleware/validateTokenUser")
-const {checkBlacklist} = require("../middleware/invalidateTokenLogoutUser")
 
 
 const {    
@@ -26,21 +25,22 @@ route.route('/').get();
 //signin, signup
 route.route('/register').post(SignUp);
 route.route('/verify/:userId/:uniqueString').get(VerifyUser);
-route.route('/').get();
 
 route.route("/user/login").post(SignIn);
 route.route("/user/login/token").get(validateToken, currentToken);
-route.route("/user/logout").get(Logout, checkBlacklist);
+route.route("/user/logout").get(Logout);
 
 route.route("/user/forgot_password").post(sendVerifyCodePass);
 route.route("/user/forgot_password/:id").get(CheckVerifyCode);
 route.route("/user/change_password/:id").put(ChangePassUser);
 
-
 //cart
 route.route("/add_to_cart/:id").post(AddToCart);
 route.route("/remove_item/:id").delete(RemoveItem);
 route.route("/cart").get(GetAllItem);
+
+
 //order
+route.route("/order").get(GetAllItem);
 
 module.exports = route

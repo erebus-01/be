@@ -191,53 +191,63 @@ const SignIn = async (req, res) => {
 }
 
 const currentToken = async (req, res) => {
-    
     const cart = req.session.cart || [];
-
-
+    const userId = req.session.user.id;
+  
     if (cart.length > 0) {
-        let userCart = await Cart.findOne({ user: user._id });
+        try {
+            let userCart = await Cart.findOne({ user: userId });
     
-        if (!userCart) {
-          userCart = await Cart.create({ user: user._id, products: [] });
-        }
-
-        cart.forEach(async (item) => {
-            const existingProduct = userCart.products.find(
-              (product) => product.product.toString() === item.productId
-            );
-      
-            if (existingProduct) {
-              existingProduct.quantity += item.quantity;
-            } else {
-              userCart.products.push({
-                product: item.productId,
-                quantity: item.quantity,
-              });
+            if (!userCart) {
+            userCart = await Cart.create({ user: userId, products: [] });
             }
-          });
-        await userCart.save();
-        req.session.cart = [];
+    
+            cart.forEach((item) => {
+                const existingProduct = userCart.products.find(
+                    (product) => product.product.toString() === item.productId
+                );
         
-        res.status(201).json({ message: "Add to cart from session" });
+                if (existingProduct) {
+                    existingProduct.quantity += item.quantity;
+                } else {
+                    userCart.products.push({
+                    product: item.productId,
+                    quantity: item.quantity,
+                    });
+                }
+            });
+    
+            await userCart.save();
+            req.session.cart = [];
+    
+                res.status(201).json({ json: userCart, message: "Add to cart from session" });
+            } catch (error) {
+                res.status(500).json({ message: "Error adding cart from session: " + error });
+        }
+    } else {
+        try {
+            const user = await User.findById(userId).select("-password");
+            res.status(200).json({ json: user });
+        } catch (error) {
+            res.status(500).json({ message: "Error getting user information: " + error });
+        }
     }
-    res.status(201).json({ json: req.session.user });
-}
+  };
+  
 
 const Logout = async (req, res) => {
     try {
-        const authToken = req.headers.authorization;
-        const token = authToken.split(" ")[1];
-
-        client.set(token, 'blacklisted', 'EX', 60 * 5, (err, reply) => {
-            if (err) throw err;
-            client.quit();
+        if (req.session.user) {
+            delete req.session.user;
             res.status(200).json({ message: "Logout successful" });
-        });
+        } else {
+            res.status(400).json({ message: "User not logged in" });
+        }
     } catch (error) {
         res.status(500).json({ message: "Error logging out: " + error });
     }
 };
+  
 module.exports = {
     SignUp,
     SignIn,
