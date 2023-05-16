@@ -31,9 +31,8 @@ const AddToCart = async (req, res) => {
     else
     {
         let cart = req.session.cart || [];
-
         const existingProduct = cart.find(product => product.productId === productId);
-
+        
         if (existingProduct) {
             existingProduct.quantity += convertQuantity;
         } else {

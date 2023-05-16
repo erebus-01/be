@@ -126,7 +126,7 @@ const VerifyAdmin = async (req, res, next) => {
 
 const GetAllAdmin = async (req, res, next) => {
     try{
-        const admins = await Admin.find({})
+        const admins = await Admin.find({}, {password: 0})
         res.status(200).send({success: true, json: admins})
     }
     catch(error)
@@ -137,7 +137,7 @@ const GetAllAdmin = async (req, res, next) => {
 
 const GetAdmin = async (req, res, next) => {
     let id = req.params.id;
-    await Admin.findById({_id: id})
+    await Admin.findById({_id: id}, {password: 0})
             .then((admin) => {
                 res.status(201).json({ json: admin });
             })
@@ -148,7 +148,12 @@ const GetAdmin = async (req, res, next) => {
 
 const InsertAdmin = async (req, res, next) => {
     try{
-        const { firstName, lastName, email, address, telephone, password, cfpassword } = req.body;
+        const { firstName, lastName, email, telephone, password, cfpassword, provinces, districts, wards } = req.body;
+
+        let address = [];
+        address.push(provinces);
+        address.push(districts);
+        address.push(wards);
 
         const isValid = validator.validate(email);
 
