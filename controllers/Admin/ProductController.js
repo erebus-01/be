@@ -52,27 +52,19 @@ const GetProduct = async (req, res) => {
 }
 const UpdateProduct = async (req, res) => {
   try {
-    const id = req.params.id;
-    const { name, subtitles, image, description, benefit, price } = req.body
+    const { _id, name, subtitles, image, description, benefit, price } = req.body
 
-    const benefitArray = benefit.split('\n');
-    const descriptionArray = description.split('\n');
-    const nameFixed = name.replace(/\n/g, '');
-    const subtitlesFixed = subtitles.replace(/\n/g, '');
-    const imageFixed = image.replace(/[ \t\n]+/g, '');
-    const priceFixed = price.replace(/\n/g, '');
-
-    Product.findByIdAndUpdate(id, {
-      name: nameFixed, 
-      subtitles: subtitlesFixed, 
-      image: imageFixed, 
-      description: descriptionArray, 
-      benefit: benefitArray,
-      price: priceFixed,
+    Product.findByIdAndUpdate(_id, {
+      name, 
+      subtitles, 
+      image,
+      description, 
+      benefit,
+      price,
     }, { new: true })
     .then(() => res.status(201).json({ message: 'Product updated successfully' }))
-    .catch(error => res.status(500).json({ message: error }));
-  }catch(error) {res.status(500).json({ message: error })}
+    .catch(error => res.status(500).json({ message: `Have error ${error}` }));
+  }catch(error) {res.status(500).json({ message: `Have error ${error}` })}
 }
 const DeleteProduct = async (req, res) => {
   try {
@@ -178,7 +170,7 @@ const UpdateColor = async (req, res) => {
 }
 const DeleteColor = async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = req.params.id; 
     const product = req.params.product
 
     await ProductColor.findByIdAndDelete({ _id: id, product: product })

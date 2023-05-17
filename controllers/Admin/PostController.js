@@ -46,15 +46,14 @@ const InsertPost = async (req, res, next) => {
 
 const UpdatePost = async (req, res, next) => {
     try {
-        const id = req.params.id;
-        const { title, author, topic, image, content } = req.body;
+        const { _id, title, author, topic, image, content } = req.body;
 
         titleFixed = title.toUpperCase().replace(/\n/g, '');
         authorFixed = author.toUpperCase().replace(/\n/g, '');
         topicFixed = topic.replace(/[ \t\n]+/g, '');
         imageFixed = image.replace(/[ \t\n]+/g, '');
 
-        Post.findByIdAndUpdate(id, { title: titleFixed, author: authorFixed, topic: topicFixed, image: imageFixed, content }, { new: true})
+        Post.findByIdAndUpdate(_id, { title: titleFixed, author: authorFixed, topic: topicFixed, image: imageFixed, content }, { new: true})
           .then(() => res.status(201).json({ message: 'Post updated successfully' }))
           .catch(error => res.status(500).json({ message: error }));
     }catch(error) {

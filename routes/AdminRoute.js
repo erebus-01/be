@@ -65,7 +65,7 @@ route.route('/admin/controller/currentToken').get(validateToken, currentToken);
 route.route('/posts').get(GetPosts);
 route.route('/post/:id').get(GetPost);
 route.route('/post').post(InsertPost);
-route.route('/post/:id').put(UpdatePost);
+route.route('/post').put(UpdatePost);
 route.route('/post/:id').delete(DeletePost);
 // #endregion
 
@@ -75,7 +75,7 @@ route.route('/post/:id').delete(DeletePost);
 route.route('/products').get(GetProducts);
 route.route('/product/:id').get(GetProduct);
 route.route('/product').post(InsertProduct);
-route.route('/product/:id').put(UpdateProduct);
+route.route('/product').put(UpdateProduct);
 route.route('/product/:id').delete(DeleteProduct);
 // #endregion
 
