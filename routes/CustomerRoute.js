@@ -6,7 +6,8 @@ const {
     SignIn,
     VerifyUser,
     currentToken,
-    Logout
+    Logout,
+    CheckSession
 } = require("../controllers/Customer/UserController")
 
 const { validateToken } = require("../middleware/validateTokenUser")
@@ -21,6 +22,8 @@ const {
 const { sendVerifyCodePass, CheckVerifyCode, ChangePassUser } = require("../controllers/Customer/ForgotPassword")
 
 route.route('/').get();
+
+route.route('/user/check_session').get(CheckSession);
 
 //signin, signup
 route.route('/user/register').post(SignUp);

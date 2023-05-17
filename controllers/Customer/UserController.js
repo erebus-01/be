@@ -234,6 +234,18 @@ const currentToken = async (req, res) => {
     }
   };
   
+const CheckSession = async (req, res) => {
+    try {
+        const session = req.session.user
+        if (session) {
+            res.status(200).json(session);
+        } else {
+            res.status(400).json();
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Error logging out: " + error });
+    }
+}
 
 const Logout = async (req, res) => {
     try {
@@ -253,5 +265,6 @@ module.exports = {
     SignIn,
     VerifyUser,
     currentToken,
-    Logout
+    Logout,
+    CheckSession
 }
