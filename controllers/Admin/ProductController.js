@@ -90,7 +90,7 @@ const GetColors = async (req, res) => {
     {
       return res.status(203).json({ message: 'This product is not available in color' });
     } 
-    res.status(201).json({ json: colors, message: 'Product colors fetched successfully' });
+    res.status(201).json(colors);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
