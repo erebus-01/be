@@ -18,6 +18,9 @@ const AdminLogin = async (req, res) => {
                 admin: {
                     email: admin.email,
                     id: admin.id,
+                    firstName: admin.firstName,
+                    lastName: admin.lastName,
+                    telephone: admin.telephone
                 }
             }, 
             process.env.ACCESS_TOKEN_ADMIN,
@@ -36,7 +39,7 @@ const AdminLogin = async (req, res) => {
 };
 
 const currentToken = async (req, res) => {
-    res.status(201).json({ json: req.user });
+    res.status(201).json({ json: req.session.admin });
 }
 
 module.exports = {

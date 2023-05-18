@@ -10,7 +10,11 @@ const cors = require('cors');
 
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  methods: 'GET,POST,DELETE,PUT',
+  allowedHeaders: 'Content-Type, Authorization'
+}));
 app.use(
   session({
     secret: process.env.SECRET_KEY,

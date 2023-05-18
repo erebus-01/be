@@ -9,7 +9,7 @@ const validateToken = async (req, res, next) => {
         token = authToken.split(" ")[1];
         jwt.verify(token, process.env.ACCESS_TOKEN_ADMIN, (err, decoded) => {
             if(err) res.status(400).json({ json: err })
-            req.user = decoded.admin;
+            req.session.admin = decoded.admin;
             next();
         })
 

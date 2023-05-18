@@ -43,6 +43,14 @@ const {
 } = require('../controllers/Admin/ProductController');
 // #endregion
 
+const {
+    GetUsers,
+    UpdateUser,
+    DeleteUser
+} = require('../controllers/Admin/UserController');
+
+
+
 
 
 // #region Region AdminController
@@ -59,8 +67,6 @@ route.route('/admin/controller/currentToken').get(validateToken, currentToken);
 
 // #endregion
 
-
-
 // #region Region PostController
 route.route('/posts').get(GetPosts);
 route.route('/post/:id').get(GetPost);
@@ -68,8 +74,6 @@ route.route('/post').post(InsertPost);
 route.route('/post').put(UpdatePost);
 route.route('/post/:id').delete(DeletePost);
 // #endregion
-
-
 
 // #region Region ProductController
 route.route('/products').get(GetProducts);
@@ -79,8 +83,6 @@ route.route('/product').put(UpdateProduct);
 route.route('/product/:id').delete(DeleteProduct);
 // #endregion
 
-
-
 // #region Region ColorProductController
 route.route('/products/colors/:product').get(GetColors);
 route.route('/product/color/:product/:id').get(GetColor);
@@ -88,5 +90,9 @@ route.route('/product/color/:product').post(InsertColor);
 route.route('/product/color/:product/:id').put(UpdateColor);
 route.route('/product/color/:product/:id').delete(DeleteColor);
 // #endregion
+
+route.route('/user').get(GetUsers);
+route.route('/user').put(UpdateUser);
+route.route('/user/:id').delete(DeleteUser);
 
 module.exports = route
