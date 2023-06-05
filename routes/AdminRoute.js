@@ -49,7 +49,7 @@ const {
     DeleteUser
 } = require('../controllers/Admin/UserController');
 
-
+const {GetAll, ChangeStatus, GetOrderUser} = require('../controllers/Admin/OrderController')
 
 
 
@@ -94,5 +94,10 @@ route.route('/product/color/:product/:id').delete(DeleteColor);
 route.route('/user').get(GetUsers);
 route.route('/user').put(UpdateUser);
 route.route('/user/:id').delete(DeleteUser);
+
+
+route.route('/order').get(GetAll);
+route.route('/order/:userId/:orderId').put(ChangeStatus);
+route.route('/get_order/:userId').get(GetOrderUser)
 
 module.exports = route

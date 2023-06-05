@@ -6,12 +6,15 @@ const session = require('express-session');
 const dotenv = require('dotenv').config();
 const app = express();
 const cors = require('cors');
+const passport = require("passport");
 
 
 const PORT = process.env.PORT || 5000;
 
+require('./config/passportGoogleAuth20')(passport)
+
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: ['http://localhost:9000', 'http://localhost:3000'],
   methods: 'GET,POST,DELETE,PUT',
   allowedHeaders: 'Content-Type, Authorization'
 }));
@@ -22,6 +25,11 @@ app.use(
     saveUninitialized: true
   })
 )
+
+
+app.use(passport.initialize())
+app.use(passport.session())
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
